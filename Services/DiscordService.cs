@@ -107,7 +107,7 @@ public class DiscordService(
             discordClient.CurrentUser.DiscriminatorValue);
 
         discordShardedClient.SetStatusAsync(UserStatus.Online);
-        discordShardedClient.SetGameAsync("PokéFarm Q");
+        discordShardedClient.SetGameAsync("Waiting for a re-run.");
 
         _shardsReady++;
 
