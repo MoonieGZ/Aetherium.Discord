@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: mooniegz/aetherium-discord
+  IMAGE_NAME: mooniegz/aetherium.discord
 
 jobs:
   build_and_push:
