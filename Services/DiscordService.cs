@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text.RegularExpressions;
 using Aetherium.Options;
 using Aetherium.Util;
 using Discord;
@@ -61,21 +62,63 @@ public class DiscordService(
         if (arg.Embeds.Count == 1)
         {
             ulong destinationChannel = 0;
+            var game = string.Empty;
 
-            destinationChannel = arg.Author.Username switch
+            switch (arg.Author.Username)
             {
-                "HoyoLab" => arg.Embeds.First().Author!.Value.Name switch
+                case "HoyoLab":
+                    switch (arg.Embeds.First().Author!.Value.Name)
+                    {
+                        case "Paimon":
+                            destinationChannel = discordBotOptions.Value.GIChannelId;
+                            game = "gi";
+                            break;
+                        case "PomPom":
+                            destinationChannel = discordBotOptions.Value.HSRChannelId;
+                            game = "hsr";
+                            break;
+                        case "Eous":
+                            destinationChannel = discordBotOptions.Value.ZZZChannelId;
+                            game = "zzz";
+                            break;
+                    }
+
+                    break;
+                case "Paimon":
+                    destinationChannel = discordBotOptions.Value.GIChannelId;
+                    game = "gi";
+                    break;
+                case "PomPom":
+                    destinationChannel = discordBotOptions.Value.HSRChannelId;
+                    game = "hsr";
+                    break;
+                case "Eous":
+                    destinationChannel = discordBotOptions.Value.ZZZChannelId;
+                    game = "zzz";
+                    break;
+            }
+
+            var embed = arg.Embeds.First();
+
+            if (embed.Title.Contains("Code Redeem"))
+            {
+                if (embed.Description.Contains("Moons") && embed.Description.Contains("Code Successfully Redeemed"))
                 {
-                    "Paimon" => discordBotOptions.Value.GIChannelId,
-                    "PomPom" => discordBotOptions.Value.HSRChannelId,
-                    "Eous" => discordBotOptions.Value.ZZZChannelId,
-                    _ => destinationChannel
-                },
-                "Paimon" => discordBotOptions.Value.GIChannelId,
-                "PomPom" => discordBotOptions.Value.HSRChannelId,
-                "Eous" => discordBotOptions.Value.ZZZChannelId,
-                _ => destinationChannel
-            };
+                    const string codePattern = @"Code:\s*(\S+)";
+                    const string rewardsPattern = @"Rewards:\s*(.*)";
+                    
+#pragma warning disable SYSLIB1045
+                    var codeMatch = Regex.Match(embed.Description, codePattern);
+                    var rewardsMatch = Regex.Match(embed.Description, rewardsPattern);
+#pragma warning restore SYSLIB1045
+                    
+                    var code = codeMatch.Success ? codeMatch.Groups[1].Value : "Code not found";
+                    var rewards = rewardsMatch.Success ? rewardsMatch.Groups[1].Value : "Rewards not found";
+
+                    if(code != "Code not found")
+                        await SendToKlys(game, code, rewards);
+                }
+            }
 
             if (destinationChannel != 0)
                 await discordShardedClient.GetGuild(discordBotOptions.Value.AetheriumServerId)
@@ -84,6 +127,24 @@ public class DiscordService(
                         embed: arg.Embeds.First());
             else
                 logger.LogWarning("Unknown webhook author: {author}", arg.Author.Username);
+        }
+    }
+
+    private async Task SendToKlys(string game, string code, string rewards)
+    {
+        var message = $"**Code:** {code}\n **Rewards:** {rewards}";
+        
+        switch (game)
+        {
+            case "gi":
+                await DiscordWebhookService.SendMessageAsync(discordBotOptions.Value.KlysGIChannelWebhook, message);
+                break;
+            case "hsr":
+                await DiscordWebhookService.SendMessageAsync(discordBotOptions.Value.KlysHSRChannelWebhook, message);
+                break;
+            case "zzz":
+                // Ignored.
+                break;
         }
     }
 

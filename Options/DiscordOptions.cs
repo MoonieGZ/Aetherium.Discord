@@ -12,6 +12,8 @@ public class DiscordOptions
     public ulong GIChannelId { get; set; }
     public ulong HSRChannelId { get; set; }
     public ulong ZZZChannelId { get; set; }
+    public string KlysGIChannelWebhook { get; set; } = "";
+    public string KlysHSRChannelWebhook { get; set; } = "";
 
     public Func<LogMessage, Exception?, string> LogFormat { get; set; } =
         (message, _) => $"{message.Source}: {message.Message}";
