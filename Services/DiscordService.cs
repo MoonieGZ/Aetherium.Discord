@@ -101,24 +101,29 @@ public class DiscordService(
             var embed = arg.Embeds.First();
 
             if (embed.Title.Contains("Code Redeem"))
-            {
                 if (embed.Description.Contains("Moons") && embed.Description.Contains("Code Successfully Redeemed"))
                 {
                     const string codePattern = @"Code:\s*(\S+)";
                     const string rewardsPattern = @"Rewards:\s*(.*)";
-                    
+
 #pragma warning disable SYSLIB1045
                     var codeMatch = Regex.Match(embed.Description, codePattern);
                     var rewardsMatch = Regex.Match(embed.Description, rewardsPattern);
 #pragma warning restore SYSLIB1045
-                    
+
                     var code = codeMatch.Success ? codeMatch.Groups[1].Value : "Code not found";
                     var rewards = rewardsMatch.Success ? rewardsMatch.Groups[1].Value : "Rewards not found";
 
-                    if(code != "Code not found")
-                        await SendToKlys(game, code, rewards);
+                    if (code != "Code not found")
+                        try
+                        {
+                            await SendToKlys(game, code, rewards);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"{e.GetType()}: {e.Message}");
+                        }
                 }
-            }
 
             if (destinationChannel != 0)
                 await discordShardedClient.GetGuild(discordBotOptions.Value.AetheriumServerId)
@@ -133,7 +138,7 @@ public class DiscordService(
     private async Task SendToKlys(string game, string code, string rewards)
     {
         var message = $"**Code:** {code}\n **Rewards:** {rewards}";
-        
+
         switch (game)
         {
             case "gi":
