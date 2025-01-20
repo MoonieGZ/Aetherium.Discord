@@ -137,7 +137,7 @@ public class DiscordService(
 
     private async Task SendToKlys(string game, string code, string rewards)
     {
-        var message = $"**Code:** {code}\n **Rewards:** {rewards}";
+        var message = $"**Code:** {code}\n**Rewards:** {rewards}";
 
         switch (game)
         {
